@@ -1,0 +1,50 @@
+name: iOS Build Ultra Simple
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build iOS
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Show Xcode version
+      run: |
+        xcodebuild -version
+        xcrun simctl list devices available
+    
+    - name: List schemes
+      run: |
+        xcodebuild -list -project ScubaDiabetes.xcodeproj
+    
+    - name: Build only (no test, no simulator)
+      run: |
+        set -o pipefail
+        xcodebuild clean build \
+          -project ScubaDiabetes.xcodeproj \
+          -scheme ScubaDiabetes \
+          -sdk iphonesimulator \
+          -configuration Debug \
+          -derivedDataPath ./build \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          ONLY_ACTIVE_ARCH=NO \
+          | tee build.log
+    
+    - name: Upload build log
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-log
+        path: build.log
+    
+    - name: Success
+      if: success()
+      run: echo "✅ Build succeeded!"

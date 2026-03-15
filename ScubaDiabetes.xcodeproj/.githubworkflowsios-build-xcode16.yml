@@ -1,13 +1,14 @@
-name: iOS Build with Auto-Tag
+name: iOS Build with Auto-Tag (Xcode 16)
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build and Test
-    runs-on: macos-14
+    name: Build and Deploy
+    runs-on: macos-15  # macOS 15 ha Xcode 16
     
     steps:
     - name: Checkout repository
@@ -15,43 +16,50 @@ jobs:
       with:
         fetch-depth: 0
       
-    - name: Set up Xcode
-      uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: '16.0'
+    - name: Select Xcode 16
+      run: |
+        sudo xcode-select -s /Applications/Xcode_16.0.app
+        xcodebuild -version
     
-    - name: Install xcpretty
-      run: gem install xcpretty
-    
-    - name: Cache Swift Package Manager
-      uses: actions/cache@v4
-      with:
-        path: |
-          .build
-          ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
-        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
-        restore-keys: |
-          ${{ runner.os }}-spm-
+    - name: List available devices
+      run: xcrun simctl list devices available
     
     - name: Build for iOS
       run: |
+        set -o pipefail
         xcodebuild clean build \
+          -project ScubaDiabetes.xcodeproj \
           -scheme ScubaDiabetes \
-          -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.4' \
+          -sdk iphonesimulator \
+          -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          | xcpretty && exit ${PIPESTATUS[0]}
+          CODE_SIGNING_ALLOWED=NO \
+          | tee build-ios.log
     
     - name: Build for iPadOS
       run: |
+        set -o pipefail
         xcodebuild build \
+          -project ScubaDiabetes.xcodeproj \
           -scheme ScubaDiabetes \
-          -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M4),OS=17.4' \
+          -sdk iphonesimulator \
+          -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M4)' \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          | xcpretty && exit ${PIPESTATUS[0]}
+          CODE_SIGNING_ALLOWED=NO \
+          | tee build-ipad.log
+    
+    - name: Upload Build Logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs
+        path: |
+          build-ios.log
+          build-ipad.log
     
     - name: Generate Build Info
       if: success()
@@ -62,6 +70,7 @@ jobs:
         echo "Branch: ${{ github.ref_name }}" >> build-info/build-summary.txt
         echo "Date: $(date)" >> build-info/build-summary.txt
         echo "Bundle ID: ch.scubadiabetes.app" >> build-info/build-summary.txt
+        echo "Xcode: $(xcodebuild -version | head -n 1)" >> build-info/build-summary.txt
     
     - name: Upload Build Info
       if: success()
@@ -74,7 +83,6 @@ jobs:
     - name: Create Success Tag
       if: success()
       run: |
-        # Crea un tag con la data e l'ora
         TAG_NAME="build-success-$(date +'%Y%m%d-%H%M%S')"
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "GitHub Actions"
@@ -100,17 +108,17 @@ jobs:
           - **Commit**: `${{ github.sha }}`
           - **Branch**: `${{ github.ref_name }}`
           - **Data**: $(date '+%d/%m/%Y alle %H:%M')
+          - **Xcode**: 16.0
           
-          ### ✅ Test
-          - Build iOS: Passata
-          - Build iPadOS: Passata
-          - Unit Tests: Passati
+          ### ✅ Status
+          - Build iOS: ✅ Passata
+          - Build iPadOS: ✅ Passata
           
           ### 📊 Artefatti
-          Controlla la sezione "Artifacts" di questa release per scaricare i risultati dei test.
+          Scarica i log di build dalla sezione Artifacts.
           
           ---
-          _Generato automaticamente da GitHub Actions_
+          _Generato automaticamente da GitHub Actions con Xcode 16_
         draft: false
         prerelease: true
         files: |
