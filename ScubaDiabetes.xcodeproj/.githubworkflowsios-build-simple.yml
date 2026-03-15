@@ -1,0 +1,42 @@
+name: iOS Build Simple
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build iOS App
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode_15.2.app
+    
+    - name: Show Xcode version
+      run: xcodebuild -version
+    
+    - name: List available schemes
+      run: xcodebuild -list -project ScubaDiabetes.xcodeproj
+    
+    - name: Build for iOS
+      run: |
+        xcodebuild clean build \
+          -project ScubaDiabetes.xcodeproj \
+          -scheme ScubaDiabetes \
+          -destination 'generic/platform=iOS Simulator' \
+          -configuration Debug \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO
+    
+    - name: Success Message
+      if: success()
+      run: |
+        echo "✅ Build completata con successo!"
+        echo "Commit: ${{ github.sha }}"
+        echo "Branch: ${{ github.ref_name }}"
