@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		14DA8BFC2F66BE9500B1E838 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 14DA8BFB2F66BE9500B1E838 /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		147AE1B72F5F10A60093537B /* ScubaDiabetes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScubaDiabetes.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		14DA8BFB2F66BE9500B1E838 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -64,6 +69,7 @@
 				147AE1CA2F5F11C80093537B /* Resources */,
 				147AE1D02F5F12460093537B /* ViewModels */,
 				147AE1D12F5F12620093537B /* Views */,
+				14DA8BFB2F66BE9500B1E838 /* .gitignore */,
 			);
 			sourceTree = "<group>";
 		};
@@ -147,6 +153,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				14DA8BFC2F66BE9500B1E838 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
