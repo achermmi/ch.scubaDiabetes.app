@@ -1,0 +1,267 @@
+/* Localizable.strings — Italiano (default) */
+
+/* Navigazione */
+"nav.home"      = "Home";
+"nav.logbook"   = "Logbook";
+"nav.profile"   = "Profilo";
+"nav.medical"   = "Medico";
+"nav.members"   = "Soci";
+
+/* Login */
+"login.tagline"           = "Sub diabetici in sicurezza";
+"login.title"             = "Accedi al tuo account";
+"login.email"             = "Email";
+"login.password"          = "Password";
+"login.button"            = "Accedi";
+"login.2fa.title"         = "Verifica in due passaggi";
+"login.2fa.subtitle"      = "Inserisci il codice ricevuto via email";
+"login.2fa.code"          = "Codice 6 cifre";
+"login.2fa.verify"        = "Verifica";
+"login.2fa.back"          = "← Torna al login";
+
+/* Errori auth */
+"auth.error.invalid_credentials" = "Email o password non corretti";
+
+/* Errori API */
+"error.generic_title"  = "Errore";
+"error.invalid_url"    = "URL non valido";
+"error.no_data"        = "Nessun dato ricevuto";
+"error.decoding"       = "Errore di decodifica";
+"error.unauthorized"   = "Sessione scaduta, accedi di nuovo";
+"error.forbidden"      = "Accesso non autorizzato";
+"error.not_found"      = "Risorsa non trovata";
+"error.unknown"        = "Errore sconosciuto";
+
+/* Generali */
+"loading"       = "Caricamento…";
+"retry"         = "Riprova";
+"save"          = "Salva";
+"cancel"        = "Annulla";
+"delete"        = "Elimina";
+"edit"          = "Modifica";
+"add"           = "Aggiungi";
+"close"         = "Chiudi";
+"confirm"       = "Conferma";
+"yes"           = "Sì";
+"no"            = "No";
+"ok"            = "OK";
+
+/* Ruoli */
+"role.diabetic_diver" = "Sub Diabetico";
+"role.diver"          = "Sub Non Diabetico";
+"role.medical"        = "Medico";
+"role.staff"          = "Staff";
+"role.administrator"  = "Amministratore";
+"role.subscriber"     = "Ospite";
+
+/* Membership */
+"membership.individual" = "Socio Individuale";
+"membership.family"     = "Socio Famiglia";
+"membership.supporter"  = "Sostenitore";
+
+/* Stub */
+"home.coming_soon"    = "Sezione in sviluppo";
+"logbook.coming_soon" = "Logbook in sviluppo";
+"profile.coming_soon" = "Profilo in sviluppo";
+"medical.coming_soon" = "Pannello medico in sviluppo";
+"members.coming_soon" = "Gestione soci in sviluppo";
+
+/* Home */
+"home.hero.subtitle"   = "Sub diabetici in sicurezza";
+"home.mission.title"   = "La nostra missione";
+"home.mission.body"    = "ScubaDiabetes promuove la pratica sicura delle attività subacquee per le persone con diabete, raccogliendo dati scientifici per migliorare i protocolli di sicurezza.";
+"home.welcome"         = "Benvenuto, %@";
+"home.action.logbook"  = "Logbook";
+"home.action.profile"  = "Profilo";
+"home.action.medical"  = "Pannello Medico";
+"home.action.members"  = "Soci";
+"home.stats.title"     = "ScubaDiabetes in cifre";
+"home.stats.dives"     = "Immersioni";
+"home.stats.members"   = "Soci";
+"home.stats.languages" = "Lingue";
+"home.contact.title"   = "Contattaci";
+
+/* Profilo utente */
+"profile.my_account"   = "Il mio account";
+"profile.session"      = "Sessione attiva";
+"profile.user_id"      = "ID Utente";
+"profile.role"         = "Ruolo";
+
+/* Auth azioni */
+"auth.logout"              = "Esci";
+"auth.logout_all"          = "Esci da tutti i dispositivi";
+"auth.logout_confirm"      = "Vuoi uscire dall'account?";
+"auth.logout_all_confirm"  = "Vuoi uscire da tutti i dispositivi?";
+
+/* Logbook */
+"logbook.search"            = "Cerca per sito, data…";
+"logbook.dives_count %lld" = "%lld immersioni";
+"logbook.filters"           = "Filtri";
+"logbook.delete_confirm"    = "Eliminare questa immersione?";
+"logbook.add_first_dive"    = "Aggiungi la prima immersione";
+"logbook.empty.title"       = "Nessuna immersione";
+"logbook.empty.subtitle"    = "Registra la tua prima immersione toccando il pulsante +";
+"logbook.filter.date"       = "Data";
+"logbook.filter.date_from"  = "Dal";
+"logbook.filter.date_to"    = "Al";
+"logbook.filter.site"       = "Sito";
+"logbook.filter.site_placeholder" = "es. Lugano, Mar Rosso…";
+"logbook.filter.apply"      = "Applica";
+"logbook.filter.reset"      = "Azzera";
+
+/* Stats */
+"stats.total_dives"         = "Immersioni";
+"stats.max_depth"           = "Profondità max";
+"stats.total_time"          = "Tempo totale";
+"stats.unique_sites"        = "Siti diversi";
+
+/* Dive detail */
+"dive.detail.title"         = "Immersione";
+"dive.section.details"      = "Dettagli";
+"dive.section.diabetes"     = "Dati Glicemici";
+"dive.section.notes"        = "Note immersione";
+"dive.section.notes_dive"   = "Note immersione";
+"dive.time_in"              = "Entrata";
+"dive.time_out"             = "Uscita";
+"dive.duration"             = "Durata";
+"dive.max_depth"            = "Profondità max";
+"dive.tank"                 = "Bombola";
+"dive.gas_mix"              = "Miscela";
+"dive.water_temp"           = "Temp. acqua";
+"dive.visibility"           = "Visibilità";
+"dive.buddy"                = "Buddy";
+"dive.suit"                 = "Muta";
+"dive.diabetes.add"         = "Aggiungi dati glicemici";
+"dive.diabetes.decision"    = "Decisione";
+"dive.diabetes.hypo_during" = "⚠️ Ipoglicemia durante l'immersione";
+
+/* Decisioni */
+"dive.decision.allowed"     = "Immersione effettuata";
+"dive.decision.postponed"   = "Rinviata";
+"dive.decision.cancelled"   = "Annullata";
+
+/* Nuovo dive form */
+"dive.form.title_new"       = "Nuova Immersione";
+"dive.form.section.basic"   = "Informazioni base";
+"dive.form.section.times"   = "Orari";
+"dive.form.section.params"  = "Parametri";
+"dive.form.section.conditions" = "Condizioni";
+"dive.form.section.equipment"  = "Equipaggiamento";
+"dive.form.section.buddy"   = "Buddy";
+"dive.form.section.notes"   = "Note";
+"dive.form.date"            = "Data";
+"dive.form.site"            = "Sito di immersione";
+"dive.form.time_in"         = "Entrata";
+"dive.form.time_out"        = "Uscita";
+"dive.form.max_depth"       = "Profondità max";
+"dive.form.tank"            = "Bombola";
+"dive.form.gas_mix"         = "Miscela";
+"dive.form.ballast"         = "Zavorra";
+"dive.form.entry_type"      = "Tipo entrata";
+"dive.form.air_temp"        = "Temp. aria";
+"dive.form.water_temp"      = "Temp. acqua";
+"dive.form.visibility"      = "Visibilità";
+"dive.form.weather"         = "Meteo";
+"dive.form.suit"            = "Muta";
+"dive.form.suit_placeholder"= "es. 5mm umida";
+"dive.form.buddy"           = "Buddy";
+"dive.form.buddy_placeholder" = "Nome compagno";
+"dive.form.add_diabetes_data" = "Aggiungi dati glicemici";
+"dive.entry.shore"          = "Riva";
+"dive.entry.boat"           = "Barca";
+"dive.entry.platform"       = "Piattaforma";
+"dive.entry.other"          = "Altro";
+"done"                      = "Fine";
+
+/* Diabetes form */
+"dive.diabetes.title_add"   = "Dati Glicemici";
+"dive.diabetes.title_edit"  = "Modifica Dati Glicemici";
+"dive.diabetes.section.pre60" = "Checkpoint -60 min";
+"dive.diabetes.section.pre30" = "Checkpoint -30 min";
+"dive.diabetes.section.pre10" = "Checkpoint -10 min";
+"dive.diabetes.section.post"  = "Post immersione";
+"dive.diabetes.checkpoints"   = "Checkpoints glicemici";
+"dive.diabetes.section.flags" = "Eventi";
+"dive.diabetes.section.therapy" = "Aggiustamento terapia";
+"dive.diabetes.glic"         = "Glicemia";
+"dive.diabetes.trend"        = "Trend";
+"dive.diabetes.cho_rapidi"   = "CHO rapidi";
+"dive.diabetes.cho_lenti"    = "CHO lenti";
+"dive.diabetes.insulin"      = "Insulina";
+"dive.diabetes.hypo_during"  = "Ipoglicemia durante";
+"dive.diabetes.hypo_treatment" = "Trattamento ipo";
+"dive.diabetes.hypo_treatment_ph" = "es. gel glucosio";
+"dive.diabetes.pump_disconnect" = "Microinfusore scollegato";
+"dive.diabetes.cgm_used"     = "CGM utilizzato";
+"dive.diabetes.cgm_low"      = "Soglia bassa CGM";
+"dive.diabetes.cgm_high"     = "Soglia alta CGM";
+"dive.diabetes.basal_reduction" = "Riduzione basale";
+"dive.diabetes.bolus_reduction" = "Riduzione bolo";
+"dive.diabetes.postponed_min" = "Rinvio di";
+
+/* Profile - Step 5 */
+"profile.section.health"          = "Condizioni di Salute";
+"profile.section.certs"           = "Brevetti";
+"profile.section.clearances"      = "Idoneità Mediche";
+"profile.section.emergency"       = "Contatti di Emergenza";
+
+"profile.health.title"            = "Salute";
+"profile.health.diabetes"         = "Diabete";
+"profile.health.is_diabetic"      = "Persona con diabete";
+"profile.health.diabetes_type"    = "Tipo diabete";
+"profile.health.therapy"          = "Terapia";
+"profile.health.cgm"              = "CGM";
+"profile.health.pump"             = "Microinfusore";
+"profile.health.general"          = "Generale";
+"profile.health.blood_type"       = "Gruppo sanguigno";
+"profile.health.allergies"        = "Allergie";
+"profile.health.medications"      = "Farmaci";
+"profile.health.notes"            = "Note";
+"profile.health.empty"            = "Nessuna informazione sanitaria";
+
+"profile.cert.title_add"          = "Aggiungi Brevetto";
+"profile.cert.title_edit"         = "Modifica Brevetto";
+"profile.cert.section.info"       = "Informazioni";
+"profile.cert.level"              = "Brevetto";
+"profile.cert.agency"             = "Ente";
+"profile.cert.date"               = "Data";
+"profile.cert.number"             = "Numero tessera";
+"profile.cert.notes"              = "Note";
+"profile.cert.delete_confirm"     = "Eliminare questo brevetto?";
+"profile.certs.empty"             = "Nessun brevetto registrato";
+
+"profile.clearance.title_add"     = "Aggiungi Idoneità";
+"profile.clearance.title_edit"    = "Modifica Idoneità";
+"profile.clearance.section.info"  = "Informazioni";
+"profile.clearance.year %lld"     = "Anno %lld";
+"profile.clearance.valid_until"   = "Valida fino al";
+"profile.clearance.valid_until %@" = "Valida fino al %@";
+"profile.clearance.doctor"        = "Medico";
+"profile.clearance.doctor_ph"     = "Nome medico";
+"profile.clearance.outcome"       = "Esito";
+"profile.clearance.fit"           = "Idoneo";
+"profile.clearance.fit_limited"   = "Idoneo con limitazioni";
+"profile.clearance.unfit"         = "Non idoneo";
+"profile.clearance.notes"         = "Note";
+"profile.clearance.delete_confirm" = "Eliminare questa idoneità?";
+"profile.clearance.view_doc"      = "Visualizza documento";
+"profile.clearances.empty"        = "Nessuna idoneità registrata";
+
+"profile.emergency.title_add"     = "Aggiungi Contatto";
+"profile.emergency.title_edit"    = "Modifica Contatto";
+"profile.emergency.section.info"  = "Informazioni";
+"profile.emergency.name"          = "Nome";
+"profile.emergency.name_ph"       = "Nome e cognome";
+"profile.emergency.phone"         = "Telefono";
+"profile.emergency.relationship"  = "Relazione";
+"profile.emergency.relationship_ph" = "es. Coniuge, Genitore…";
+"profile.emergency.email"         = "Email";
+"profile.emergency.notes"         = "Note";
+"profile.emergency.delete_confirm" = "Eliminare questo contatto?";
+"profile.emergency.empty"         = "Nessun contatto di emergenza";
+
+"ok"                              = "OK";
+"edit"                            = "Modifica";
+"delete"                          = "Elimina";
+"cancel"                          = "Annulla";
+"save"                            = "Salva";
