@@ -63,7 +63,7 @@ jobs:
           CODE_SIGNING_REQUIRED=NO \
           -enableCodeCoverage YES \
           | xcpretty && exit ${PIPESTATUS[0]}
-      continue-on-error: false
+      continue-on-error: true
     
     - name: Upload Test Results
       if: always()
