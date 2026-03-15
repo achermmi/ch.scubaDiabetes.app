@@ -37,7 +37,7 @@ jobs:
       run: |
         xcodebuild clean build \
           -scheme ScubaDiabetes \
-          -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.4' \
+          -destination 'generic/platform=iOS Simulator' \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
@@ -47,7 +47,7 @@ jobs:
       run: |
         xcodebuild build \
           -scheme ScubaDiabetes \
-          -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M4),OS=17.4' \
+          -destination 'generic/platform=iOS Simulator' \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
