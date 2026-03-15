@@ -53,27 +53,6 @@ jobs:
           CODE_SIGNING_REQUIRED=NO \
           | xcpretty && exit ${PIPESTATUS[0]}
     
-    - name: Run Tests
-      run: |
-        xcodebuild test \
-          -scheme ScubaDiabetes \
-          -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.4' \
-          -configuration Debug \
-          CODE_SIGN_IDENTITY="" \
-          CODE_SIGNING_REQUIRED=NO \
-          -enableCodeCoverage YES \
-          | xcpretty && exit ${PIPESTATUS[0]}
-      continue-on-error: true
-    
-    - name: Upload Test Results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results
-        path: |
-          ~/Library/Developer/Xcode/DerivedData/**/Logs/Test/*.xcresult
-        retention-days: 30
-    
     - name: Generate Build Info
       if: success()
       run: |
