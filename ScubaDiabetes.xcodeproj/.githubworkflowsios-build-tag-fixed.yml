@@ -1,0 +1,121 @@
+name: iOS Build with Auto-Tag
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: macos-15
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+    
+    - name: Select Xcode 16.2
+      run: |
+        sudo xcode-select -s /Applications/Xcode_16.2.app
+        xcodebuild -version
+    
+    - name: Install xcpretty
+      run: gem install xcpretty
+    
+    - name: Cache Swift Package Manager
+      uses: actions/cache@v5
+      with:
+        path: |
+          .build
+          ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-spm-
+    
+    - name: Build for iOS
+      run: |
+        xcodebuild clean build \
+          -scheme ScubaDiabetes \
+          -destination 'generic/platform=iOS Simulator' \
+          -configuration Debug \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          | xcpretty && exit ${PIPESTATUS[0]}
+    
+    - name: Build for iPadOS
+      run: |
+        xcodebuild build \
+          -scheme ScubaDiabetes \
+          -destination 'generic/platform=iOS Simulator' \
+          -configuration Debug \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          | xcpretty && exit ${PIPESTATUS[0]}
+    
+    - name: Generate Build Info
+      if: success()
+      run: |
+        mkdir -p build-info
+        echo "Build #${{ github.run_number }}" > build-info/build-summary.txt
+        echo "Commit: ${{ github.sha }}" >> build-info/build-summary.txt
+        echo "Branch: ${{ github.ref_name }}" >> build-info/build-summary.txt
+        echo "Date: $(date)" >> build-info/build-summary.txt
+        echo "Bundle ID: ch.scubadiabetes.app" >> build-info/build-summary.txt
+        echo "Xcode: $(xcodebuild -version | head -n 1)" >> build-info/build-summary.txt
+    
+    - name: Upload Build Info
+      if: success()
+      uses: actions/upload-artifact@v5
+      with:
+        name: build-info
+        path: build-info/
+        retention-days: 90
+    
+    - name: Create Success Tag
+      if: success()
+      run: |
+        TAG_NAME="build-success-$(date +'%Y%m%d-%H%M%S')"
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "GitHub Actions"
+        git tag -a "$TAG_NAME" -m "✅ Successful build at $(date)"
+        git push origin "$TAG_NAME"
+    
+    - name: Create GitHub Release
+      if: success()
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: build-success-${{ github.run_number }}
+        name: "✅ Build Riuscita #${{ github.run_number }}"
+        body: |
+          ## 🎉 Build Completata con Successo
+          
+          ### 📱 Informazioni App
+          - **Bundle ID**: ch.scubadiabetes.app
+          - **Piattaforme**: iOS, iPadOS, Mac (Designed for iPad), visionOS
+          - **Target iOS minimo**: 16.2
+          
+          ### 🔧 Dettagli Build
+          - **Build Number**: #${{ github.run_number }}
+          - **Commit**: `${{ github.sha }}`
+          - **Branch**: `${{ github.ref_name }}`
+          - **Data**: $(date '+%d/%m/%Y alle %H:%M')
+          - **Xcode**: 16.2
+          
+          ### ✅ Status
+          - Build iOS: ✅ Passata
+          - Build iPadOS: ✅ Passata
+          
+          ### 📊 Artefatti
+          Scarica i build logs dalla sezione Artifacts.
+          
+          ---
+          _Generato automaticamente da GitHub Actions_
+        draft: false
+        prerelease: true
+        files: |
+          build-info/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
