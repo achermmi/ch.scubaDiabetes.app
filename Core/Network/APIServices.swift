@@ -7,6 +7,7 @@ import UIKit
 // MARK: - AuthService
 // ─────────────────────────────────────────────────────────────────────────────
 
+@MainActor
 final class AuthService {
     private let net = NetworkManager.shared
 
@@ -64,6 +65,7 @@ final class AuthService {
 // MARK: - DiveService
 // ─────────────────────────────────────────────────────────────────────────────
 
+@MainActor
 final class DiveService {
     private let net = NetworkManager.shared
 
@@ -122,6 +124,7 @@ final class DiveService {
 // MARK: - DiabetesService
 // ─────────────────────────────────────────────────────────────────────────────
 
+@MainActor
 final class DiabetesService {
     private let net = NetworkManager.shared
 
@@ -150,6 +153,7 @@ final class DiabetesService {
 // MARK: - ProfileService
 // ─────────────────────────────────────────────────────────────────────────────
 
+@MainActor
 final class ProfileService {
     private let net = NetworkManager.shared
 
@@ -211,6 +215,7 @@ final class ProfileService {
 // MARK: - MedicalService
 // ─────────────────────────────────────────────────────────────────────────────
 
+@MainActor
 final class MedicalService {
     private let net = NetworkManager.shared
 
@@ -247,6 +252,7 @@ final class MedicalService {
 // MARK: - MembersService
 // ─────────────────────────────────────────────────────────────────────────────
 
+@MainActor
 final class MembersService {
     private let net = NetworkManager.shared
 
@@ -295,6 +301,7 @@ final class MembersService {
 // MARK: - ResearchService
 // ─────────────────────────────────────────────────────────────────────────────
 
+@MainActor
 final class ResearchService {
     private let net = NetworkManager.shared
 

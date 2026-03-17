@@ -233,17 +233,20 @@ struct MedicalClearanceCardView: View {
 }
 
 #Preview("In scadenza") {
-    let futureDate = Calendar.current.date(byAdding: .day, value: 15, to: Date())!
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd"
-    
+    let validUntil: String = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        let d = Calendar.current.date(byAdding: .day, value: 15, to: Date())!
+        return f.string(from: d)
+    }()
+
     VStack(spacing: 16) {
         MedicalClearanceCardView(
             clearance: MedicalClearance(
                 id: 3,
                 year: 2026,
                 date: "2025-03-20",
-                validUntil: formatter.string(from: futureDate),
+                validUntil: validUntil,
                 type: "non_agonistica",
                 doctor: "Dr. Mario Rossi",
                 outcome: "fit_limited",
