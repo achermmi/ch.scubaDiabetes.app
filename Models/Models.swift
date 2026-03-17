@@ -39,6 +39,28 @@ struct HealthProfileSummary: Decodable {
     let diabetesType:         String?
     let certificationLevel:   String?
     let certificationAgency:  String?
+    
+    // Custom init per gestire "1"/"0" come Bool
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // isDiabetic può essere Bool o String "1"/"0"
+        if let boolValue = try? container.decode(Bool.self, forKey: .isDiabetic) {
+            isDiabetic = boolValue
+        } else if let stringValue = try? container.decode(String.self, forKey: .isDiabetic) {
+            isDiabetic = (stringValue == "1" || stringValue.lowercased() == "true")
+        } else {
+            isDiabetic = nil
+        }
+        
+        diabetesType = try? container.decodeIfPresent(String.self, forKey: .diabetesType)
+        certificationLevel = try? container.decodeIfPresent(String.self, forKey: .certificationLevel)
+        certificationAgency = try? container.decodeIfPresent(String.self, forKey: .certificationAgency)
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case isDiabetic, diabetesType, certificationLevel, certificationAgency
+    }
 }
 
 struct MessageResponse: Decodable {
@@ -76,6 +98,7 @@ struct Dive: Decodable, Identifiable {
     let notes:       String?
     let buddyName:   String?
     let guideName:   String?
+    var shareForResearch: Bool?  // 🆕 Privacy: condivisione dati per ricerca
     let createdAt:   String?
 
     // Alias per compatibilità View
@@ -112,6 +135,7 @@ struct Dive: Decodable, Identifiable {
         notes        = try? c.decodeIfPresent(String.self, forKey: .notes)
         buddyName    = try? c.decodeIfPresent(String.self, forKey: .buddyName)
         guideName    = try? c.decodeIfPresent(String.self, forKey: .guideName)
+        shareForResearch = Self.flexBool(c, .shareForResearch)
         createdAt    = try? c.decodeIfPresent(String.self, forKey: .createdAt)
         #if DEBUG
         print("🔍 Dive decode: id=\(id) diveNumber=\(diveNumber) siteName=\(siteName)")
@@ -133,6 +157,13 @@ struct Dive: Decodable, Identifiable {
         if (try? c.decodeNil(forKey: k)) == true { return nil }
         if let v = try? c.decode(Double.self, forKey: k) { return v }
         if let s = try? c.decode(String.self, forKey: k) { return Double(s) }
+        return nil
+    }
+    private static func flexBool(_ c: KeyedDecodingContainer<CodingKeys>, _ k: CodingKeys) -> Bool? {
+        if (try? c.decodeNil(forKey: k)) == true { return nil }
+        if let v = try? c.decode(Bool.self,   forKey: k) { return v }
+        if let s = try? c.decode(String.self, forKey: k) { return s == "1" || s.lowercased() == "true" }
+        if let i = try? c.decode(Int.self,    forKey: k) { return i == 1 }
         return nil
     }
 
@@ -161,6 +192,7 @@ struct Dive: Decodable, Identifiable {
         case seaCondition = "seaCondition"  // sea_condition
         case buddyName    = "buddyName"     // buddy_name
         case guideName    = "guideName"     // guide_name
+        case shareForResearch = "shareForResearch"  // share_for_research
         case createdAt    = "createdAt"     // created_at
     }
 
@@ -436,6 +468,21 @@ struct DiverProfile: Decodable {
     let certifications:    [Certification]
     let clearances:        [MedicalClearance]
     let emergencyContacts: [EmergencyContact]
+    
+    // Init manuale per permettere la creazione programmatica (es. dopo aggiornamenti)
+    init(
+        user: SDUser,
+        health: HealthProfile?,
+        certifications: [Certification],
+        clearances: [MedicalClearance],
+        emergencyContacts: [EmergencyContact]
+    ) {
+        self.user = user
+        self.health = health
+        self.certifications = certifications
+        self.clearances = clearances
+        self.emergencyContacts = emergencyContacts
+    }
 }
 
 struct HealthProfile: Decodable {
@@ -451,6 +498,122 @@ struct HealthProfile: Decodable {
     let allergies:       String?
     let medications:     String?
     let notes:           String?
+    let glucoseUnit:     String?  // 🆕 "mg_dl" o "mmol_l"
+    let shareForResearch: Bool?   // 🆕 Default privacy per tutte le immersioni
+    
+    // Custom init per gestire campi che arrivano come String dal backend
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // id e userId possono essere Int o String
+        if let intValue = try? container.decode(Int.self, forKey: .id) {
+            id = intValue
+        } else if let stringValue = try? container.decode(String.self, forKey: .id), let parsed = Int(stringValue) {
+            id = parsed
+        } else {
+            id = nil
+        }
+        
+        if let intValue = try? container.decode(Int.self, forKey: .userId) {
+            userId = intValue
+        } else if let stringValue = try? container.decode(String.self, forKey: .userId), let parsed = Int(stringValue) {
+            userId = parsed
+        } else {
+            userId = nil
+        }
+        
+        // isDiabetic può essere Bool o String "1"/"0"
+        if let boolValue = try? container.decode(Bool.self, forKey: .isDiabetic) {
+            isDiabetic = boolValue
+        } else if let stringValue = try? container.decode(String.self, forKey: .isDiabetic) {
+            isDiabetic = (stringValue == "1" || stringValue.lowercased() == "true")
+        } else {
+            isDiabetic = nil
+        }
+        
+        // shareForResearch può essere Bool o String "1"/"0"
+        if let boolValue = try? container.decode(Bool.self, forKey: .shareForResearch) {
+            shareForResearch = boolValue
+        } else if let stringValue = try? container.decode(String.self, forKey: .shareForResearch) {
+            shareForResearch = (stringValue == "1" || stringValue.lowercased() == "true")
+        } else {
+            shareForResearch = nil
+        }
+        
+        // hba1c può essere Double o String
+        if let doubleValue = try? container.decode(Double.self, forKey: .hba1c) {
+            hba1c = doubleValue
+        } else if let stringValue = try? container.decode(String.self, forKey: .hba1c), let parsed = Double(stringValue) {
+            hba1c = parsed
+        } else {
+            hba1c = nil
+        }
+        
+        // Campi stringa standard - filtra "none" e stringhe vuote
+        if let value = try? container.decodeIfPresent(String.self, forKey: .diabetesType),
+           !value.isEmpty, value.lowercased() != "none" {
+            diabetesType = value
+        } else {
+            diabetesType = nil
+        }
+        
+        if let value = try? container.decodeIfPresent(String.self, forKey: .therapyType),
+           !value.isEmpty, value.lowercased() != "none" {
+            therapyType = value
+        } else {
+            therapyType = nil
+        }
+        
+        if let value = try? container.decodeIfPresent(String.self, forKey: .cgmDevice),
+           !value.isEmpty, value.lowercased() != "none" {
+            cgmDevice = value
+        } else {
+            cgmDevice = nil
+        }
+        
+        if let value = try? container.decodeIfPresent(String.self, forKey: .insulinPumpModel),
+           !value.isEmpty, value.lowercased() != "none" {
+            insulinPumpModel = value
+        } else {
+            insulinPumpModel = nil
+        }
+        
+        if let value = try? container.decodeIfPresent(String.self, forKey: .bloodType),
+           !value.isEmpty, value.lowercased() != "none" {
+            bloodType = value
+        } else {
+            bloodType = nil
+        }
+        
+        if let value = try? container.decodeIfPresent(String.self, forKey: .allergies),
+           !value.isEmpty, value.lowercased() != "none" {
+            allergies = value
+        } else {
+            allergies = nil
+        }
+        
+        if let value = try? container.decodeIfPresent(String.self, forKey: .medications),
+           !value.isEmpty, value.lowercased() != "none" {
+            medications = value
+        } else {
+            medications = nil
+        }
+        
+        if let value = try? container.decodeIfPresent(String.self, forKey: .notes),
+           !value.isEmpty, value.lowercased() != "none" {
+            notes = value
+        } else {
+            notes = nil
+        }
+        
+        glucoseUnit = try? container.decodeIfPresent(String.self, forKey: .glucoseUnit)
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id, userId, isDiabetic, diabetesType, therapyType, hba1c
+        case cgmDevice, insulinPumpModel, bloodType, allergies, medications, notes
+        case glucoseUnit, shareForResearch
+    }
 }
 
 struct Certification: Decodable, Identifiable {
@@ -464,7 +627,18 @@ struct Certification: Decodable, Identifiable {
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        id     = (try? c.decodeIfPresent(Int.self, forKey: .id)) ?? 0
+        
+        // Cerca id come Int
+        if let intValue = try? c.decodeIfPresent(Int.self, forKey: .id) {
+            id = intValue
+        } else {
+            // Genera un id univoco basato su agency + level + date
+            let lvl = (try? c.decode(String.self, forKey: .level)) ?? ""
+            let agn = (try? c.decode(String.self, forKey: .agency)) ?? ""
+            let dt = (try? c.decode(String.self, forKey: .date)) ?? ""
+            id = abs((agn + lvl + dt).hashValue)
+        }
+        
         level  = (try? c.decode(String.self, forKey: .level))  ?? ""
         agency = (try? c.decode(String.self, forKey: .agency)) ?? ""
         date   = (try? c.decode(String.self, forKey: .date))   ?? ""
@@ -480,24 +654,189 @@ struct Certification: Decodable, Identifiable {
 struct MedicalClearance: Decodable, Identifiable {
     let id:           Int
     let year:         Int
-    let validUntil:   String
-    let doctor:       String?
-    let outcome:      String?
+    let date:         String      // Data rilascio (date nel DB)
+    let validUntil:   String      // Data scadenza (expiry nel DB)
+    let type:         String?     // Tipo visita: "iperbarica", "sportiva", "non_agonistica", "altro"
+    let doctor:       String?     // Nome medico
+    let outcome:      String?     // Esito: "fit", "fit_limited", "unfit"
     let notes:        String?
     let documentUrl:  String?
     let documentName: String?
     let approvedBy:   Int?
     let approvedAt:   String?
     let approvedNotes:String?
+    
+    // Init manuale per preview e testing
+    init(
+        id: Int,
+        year: Int,
+        date: String,
+        validUntil: String,
+        type: String?,
+        doctor: String?,
+        outcome: String?,
+        notes: String?,
+        documentUrl: String?,
+        documentName: String?,
+        approvedBy: Int?,
+        approvedAt: String?,
+        approvedNotes: String?
+    ) {
+        self.id = id
+        self.year = year
+        self.date = date
+        self.validUntil = validUntil
+        self.type = type
+        self.doctor = doctor
+        self.outcome = outcome
+        self.notes = notes
+        self.documentUrl = documentUrl
+        self.documentName = documentName
+        self.approvedBy = approvedBy
+        self.approvedAt = approvedAt
+        self.approvedNotes = approvedNotes
+    }
+    
+    // Custom init per gestire id mancante e generare year da date
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // id può essere assente o stringa - generiamo hash da date se mancante
+        if let intValue = try? container.decode(Int.self, forKey: .id) {
+            id = intValue
+        } else if let stringValue = try? container.decode(String.self, forKey: .id), let parsed = Int(stringValue) {
+            id = parsed
+        } else {
+            // Genera un id fittizio basato su date + expiry
+            let dateStr = (try? container.decode(String.self, forKey: .date)) ?? ""
+            let expiryStr = (try? container.decode(String.self, forKey: .validUntil)) ?? ""
+            id = abs((dateStr + expiryStr).hashValue)
+        }
+        
+        // year può essere assente - estraiamo da date
+        if let intValue = try? container.decode(Int.self, forKey: .year) {
+            year = intValue
+        } else if let stringValue = try? container.decode(String.self, forKey: .year), let parsed = Int(stringValue) {
+            year = parsed
+        } else {
+            // Estrai anno da date (formato "2026-03-12")
+            if let dateStr = try? container.decode(String.self, forKey: .date),
+               let yearStr = dateStr.split(separator: "-").first,
+               let parsedYear = Int(yearStr) {
+                year = parsedYear
+            } else {
+                year = Calendar.current.component(.year, from: Date())
+            }
+        }
+        
+        date = (try? container.decode(String.self, forKey: .date)) ?? ""
+        validUntil = (try? container.decode(String.self, forKey: .validUntil)) ?? ""
+        type = try? container.decodeIfPresent(String.self, forKey: .type)
+        doctor = try? container.decodeIfPresent(String.self, forKey: .doctor)
+        outcome = try? container.decodeIfPresent(String.self, forKey: .outcome)
+        notes = try? container.decodeIfPresent(String.self, forKey: .notes)
+        
+        // Gestisci documentUrl dal nested object "doc"
+        if let docDict = try? container.decodeIfPresent([String: String].self, forKey: .doc) {
+            documentUrl = docDict["url"]
+            documentName = docDict["name"]
+        } else {
+            documentUrl = try? container.decodeIfPresent(String.self, forKey: .documentUrl)
+            documentName = try? container.decodeIfPresent(String.self, forKey: .documentName)
+        }
+        
+        // approvedBy può essere stringa
+        if let intValue = try? container.decode(Int.self, forKey: .approvedBy) {
+            approvedBy = intValue
+        } else if let stringValue = try? container.decode(String.self, forKey: .approvedBy), let parsed = Int(stringValue) {
+            approvedBy = parsed
+        } else {
+            approvedBy = nil
+        }
+        
+        approvedAt = try? container.decodeIfPresent(String.self, forKey: .approvedAt)
+        approvedNotes = try? container.decodeIfPresent(String.self, forKey: .approvedNotes)
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id, year, date, type, doctor, outcome, notes, doc
+        case validUntil = "expiry"  // Backend usa "expiry" invece di "validUntil"
+        case documentUrl, documentName, approvedBy, approvedAt, approvedNotes
+    }
+    
+    // Computed properties per display
+    var typeDisplayName: String {
+        switch type {
+        case "iperbarica": return "Iperbarica"
+        case "sportiva": return "Sportiva agonistica"
+        case "non_agonistica": return "Sportiva non agonistica"
+        case "altro": return "Altro"
+        default: return type ?? "—"
+        }
+    }
+    
+    var outcomeDisplayName: String {
+        switch outcome {
+        case "fit": return "Idoneo"
+        case "fit_limited": return "Idoneo con limitazioni"
+        case "unfit": return "Non idoneo"
+        default: return outcome ?? "—"
+        }
+    }
+    
+    var outcomeIcon: String {
+        switch outcome {
+        case "fit": return "checkmark.circle.fill"
+        case "fit_limited": return "exclamationmark.circle.fill"
+        case "unfit": return "xmark.circle.fill"
+        default: return "circle"
+        }
+    }
+    
+    var outcomeColor: Color {
+        switch outcome {
+        case "fit": return .green
+        case "fit_limited": return .orange
+        case "unfit": return .red
+        default: return .gray
+        }
+    }
 }
 
 struct EmergencyContact: Decodable, Identifiable {
-    let id:           Int
+    var id:           Int
     let name:         String
     let phone:        String
     let relationship: String?
     let email:        String?
     let notes:        String?
+    
+    // Custom init per gestire id mancante nella risposta API
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // id può essere assente - generiamo hash da name + phone
+        if let intValue = try? container.decode(Int.self, forKey: .id) {
+            id = intValue
+        } else if let stringValue = try? container.decode(String.self, forKey: .id), let parsed = Int(stringValue) {
+            id = parsed
+        } else {
+            // Genera un id fittizio basato su name + phone per garantire unicità
+            let nameStr = (try? container.decode(String.self, forKey: .name)) ?? ""
+            let phoneStr = (try? container.decode(String.self, forKey: .phone)) ?? ""
+            id = abs((nameStr + phoneStr).hashValue)
+        }
+        
+        name = (try? container.decode(String.self, forKey: .name)) ?? ""
+        phone = (try? container.decode(String.self, forKey: .phone)) ?? ""
+        relationship = try? container.decodeIfPresent(String.self, forKey: .relationship)
+        email = try? container.decodeIfPresent(String.self, forKey: .email)
+        notes = try? container.decodeIfPresent(String.self, forKey: .notes)
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, phone, relationship, email, notes
+    }
 }
 
 struct UploadResult: Decodable {
@@ -681,3 +1020,60 @@ struct TimelinePoint: Decodable, Identifiable {
     let avgPost:   Double?
     let n:         Int
 }
+// ─────────────────────────────────────────────────────────────────────────────
+// MARK: - Glucose Unit Conversion
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Unità di misura per la glicemia
+enum GlucoseUnit: String, CaseIterable {
+    case mgDl   = "mg_dl"    // mg/dL (USA, Svizzera, Italia)
+    case mmolL  = "mmol_l"   // mmol/L (UK, Canada, Australia)
+    
+    var displayName: String {
+        switch self {
+        case .mgDl:  return "mg/dL"
+        case .mmolL: return "mmol/L"
+        }
+    }
+    
+    var displaySymbol: String {
+        switch self {
+        case .mgDl:  return "mg/dL"
+        case .mmolL: return "mmol/L"
+        }
+    }
+}
+
+extension Double {
+    /// Converte da mg/dL a mmol/L
+    /// Formula: mmol/L = mg/dL ÷ 18.0182
+    var mgDlToMmolL: Double {
+        return self / 18.0182
+    }
+    
+    /// Converte da mmol/L a mg/dL
+    /// Formula: mg/dL = mmol/L × 18.0182
+    var mmolLToMgDl: Double {
+        return self * 18.0182
+    }
+    
+    /// Formatta il valore di glicemia con l'unità appropriata
+    func formatGlucose(unit: GlucoseUnit, decimals: Int = 0) -> String {
+        switch unit {
+        case .mgDl:
+            return String(format: "%.\(decimals)f", self)
+        case .mmolL:
+            let mmol = self.mgDlToMmolL
+            return String(format: "%.1f", mmol)
+        }
+    }
+}
+
+extension Optional where Wrapped == Double {
+    /// Formatta un valore glicemico opzionale
+    func formatGlucose(unit: GlucoseUnit, decimals: Int = 0) -> String? {
+        guard let value = self else { return nil }
+        return value.formatGlucose(unit: unit, decimals: decimals)
+    }
+}
+

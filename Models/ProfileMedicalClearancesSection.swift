@@ -47,13 +47,13 @@ struct ProfileMedicalClearancesSection: View {
             }
         }
         .sheet(isPresented: $showAddForm) {
-            MedicalClearanceFormView(existing: nil) { body, documentData in
-                saveClearance(body: body, documentData: documentData)
+            MedicalClearanceFormView(existing: nil) { body, documentData, fileName in
+                saveClearance(body: body, documentData: documentData, fileName: fileName)
             }
         }
         .sheet(item: $editingClearance) { clearance in
-            MedicalClearanceFormView(existing: clearance) { body, documentData in
-                updateClearance(id: clearance.id, body: body, documentData: documentData)
+            MedicalClearanceFormView(existing: clearance) { body, documentData, fileName in
+                updateClearance(id: clearance.id, body: body, documentData: documentData, fileName: fileName)
             }
         }
         .task {
@@ -92,89 +92,99 @@ struct ProfileMedicalClearancesSection: View {
         isLoading = true
         errorMessage = nil
         
-        // TODO: Implementare chiamata API reale
-        // Esempio:
-        // let result = await APIService.shared.getMedicalClearances()
-        // switch result {
-        // case .success(let data):
-        //     clearances = data
-        // case .failure(let error):
-        //     errorMessage = error.localizedDescription
-        // }
-        
-        // Mock data per preview
-        try? await Task.sleep(nanoseconds: 500_000_000)
-        
-        clearances = [
-            MedicalClearance(
-                id: 1,
-                year: 2026,
-                date: "2026-03-12",
-                validUntil: "2027-03-12",
-                type: "iperbarica",
-                doctor: "Dr. Pippo Baudo",
-                outcome: "fit",
-                notes: "Test note",
-                documentUrl: "https://example.com/doc.pdf",
-                documentName: "Spirometria.pdf",
-                approvedBy: nil,
-                approvedAt: nil,
-                approvedNotes: nil
-            ),
-            MedicalClearance(
-                id: 2,
-                year: 2025,
-                date: "2025-03-03",
-                validUntil: "2026-03-03",
-                type: "sportiva",
-                doctor: "Dr. Pinco Palla",
-                outcome: "fit",
-                notes: nil,
-                documentUrl: "https://example.com/doc2.pdf",
-                documentName: "Certificato.pdf",
-                approvedBy: nil,
-                approvedAt: nil,
-                approvedNotes: nil
-            )
-        ]
+        do {
+            clearances = try await APIService.shared.getMedicalClearances()
+        } catch {
+            errorMessage = "Errore caricamento: \(error.localizedDescription)"
+            #if DEBUG
+            print("❌ Errore caricamento idoneità:", error)
+            #endif
+        }
         
         isLoading = false
     }
     
-    private func saveClearance(body: [String: Any], documentData: Data?) {
+    private func saveClearance(body: [String: Any], documentData: Data?, fileName: String?) {
         Task {
-            // TODO: Implementare upload multipart/form-data
-            // Se c'è documentData, inviare come multipart
-            // Altrimenti, inviare solo JSON
+            isLoading = true
+            errorMessage = nil
             
-            print("📝 Salvataggio idoneità:", body)
-            if let data = documentData {
-                print("📎 Con documento di \(data.count) bytes")
+            do {
+                let newClearance = try await APIService.shared.saveMedicalClearance(
+                    body: body,
+                    documentData: documentData,
+                    documentName: fileName
+                )
+                
+                #if DEBUG
+                print("✅ Idoneità salvata:", newClearance.id)
+                #endif
+                
+                // Ricarica lista
+                await loadClearances()
+            } catch {
+                errorMessage = "Errore salvataggio: \(error.localizedDescription)"
+                #if DEBUG
+                print("❌ Errore salvataggio idoneità:", error)
+                #endif
             }
             
-            // Ricarica lista
-            await loadClearances()
+            isLoading = false
         }
     }
     
-    private func updateClearance(id: Int, body: [String: Any], documentData: Data?) {
+    private func updateClearance(id: Int, body: [String: Any], documentData: Data?, fileName: String?) {
         Task {
-            print("📝 Aggiornamento idoneità #\(id):", body)
-            if let data = documentData {
-                print("📎 Nuovo documento di \(data.count) bytes")
+            isLoading = true
+            errorMessage = nil
+            
+            do {
+                let updatedClearance = try await APIService.shared.updateMedicalClearance(
+                    id: id,
+                    body: body,
+                    documentData: documentData,
+                    documentName: fileName
+                )
+                
+                #if DEBUG
+                print("✅ Idoneità aggiornata:", updatedClearance.id)
+                #endif
+                
+                // Ricarica lista
+                await loadClearances()
+            } catch {
+                errorMessage = "Errore aggiornamento: \(error.localizedDescription)"
+                #if DEBUG
+                print("❌ Errore aggiornamento idoneità:", error)
+                #endif
             }
             
-            await loadClearances()
+            isLoading = false
         }
     }
     
     private func deleteClearance(_ clearance: MedicalClearance) {
         Task {
-            // TODO: Implementare DELETE API
-            print("🗑️ Eliminazione idoneità #\(clearance.id)")
+            isLoading = true
+            errorMessage = nil
             
-            // Rimuovi localmente
-            clearances.removeAll { $0.id == clearance.id }
+            do {
+                try await APIService.shared.deleteMedicalClearance(id: clearance.id)
+                
+                #if DEBUG
+                print("✅ Idoneità eliminata:", clearance.id)
+                #endif
+                
+                // Rimuovi localmente
+                clearances.removeAll { $0.id == clearance.id }
+            } catch {
+                errorMessage = "Errore eliminazione: \(error.localizedDescription)"
+                #if DEBUG
+                print("❌ Errore eliminazione idoneità:", error)
+                #endif
+            }
+            
+            isLoading = false
         }
     }
 }

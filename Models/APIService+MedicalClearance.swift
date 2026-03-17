@@ -1,10 +1,42 @@
 import Foundation
 
 // ─────────────────────────────────────────────────────────────────────────────
+// MARK: - Type Alias
+// ─────────────────────────────────────────────────────────────────────────────
+
+typealias APIService = NetworkManager
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MARK: - NetworkManager Helper Methods
+// ─────────────────────────────────────────────────────────────────────────────
+
+extension NetworkManager {
+    /// GET request helper
+    func get<T: Decodable>(_ path: String, queryItems: [URLQueryItem]? = nil) async throws -> T {
+        return try await request(path, method: .get, queryItems: queryItems)
+    }
+    
+    /// POST request helper
+    func post<T: Decodable>(_ path: String, body: [String: Any]? = nil) async throws -> T {
+        return try await request(path, method: .post, body: body)
+    }
+    
+    /// PUT request helper
+    func put<T: Decodable>(_ path: String, body: [String: Any]? = nil) async throws -> T {
+        return try await request(path, method: .put, body: body)
+    }
+    
+    /// DELETE request helper
+    func delete<T: Decodable>(_ path: String) async throws -> T {
+        return try await request(path, method: .delete)
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MARK: - API Service Extension - Medical Clearances
 // ─────────────────────────────────────────────────────────────────────────────
 
-extension APIService {
+extension NetworkManager {
     
     // ═════════════════════════════════════════════════════════════════════
     // MARK: - Get Medical Clearances
@@ -83,7 +115,7 @@ extension APIService {
     /// Elimina un'idoneità medica
     func deleteMedicalClearance(id: Int) async throws {
         let endpoint = "/wp-json/sd/v2/profile/clearances/\(id)"
-        let _: MessageResponse = try await delete(endpoint)
+        let _: EmptyResponse = try await delete(endpoint)
     }
     
     // ═════════════════════════════════════════════════════════════════════
@@ -99,15 +131,15 @@ extension APIService {
         documentFieldName: String,
         fileName: String
     ) async throws -> T {
-        guard let url = URL(string: baseURL + endpoint) else {
+        guard let url = URL(string: AppConstants.API.baseURL + endpoint) else {
             throw APIError.invalidURL
         }
         
         var request = URLRequest(url: url)
         request.httpMethod = method
         
-        // Bearer token
-        if let token = await authManager.getAccessToken() {
+        // Bearer token da keychain
+        if let token = KeychainManager.shared.accessToken {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         
@@ -146,7 +178,7 @@ extension APIService {
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
+            throw APIError.unknown(0)
         }
         
         #if DEBUG
@@ -155,23 +187,16 @@ extension APIService {
         
         // Verifica token scaduto
         if httpResponse.statusCode == 401 {
-            // Prova refresh token
-            if await authManager.refreshToken() {
-                // Retry con nuovo token
-                return try await uploadWithDocument(
-                    endpoint: endpoint,
-                    method: method,
-                    body: body,
-                    documentData: documentData,
-                    documentFieldName: documentFieldName,
-                    fileName: fileName
-                )
-            }
             throw APIError.unauthorized
         }
         
         guard (200...299).contains(httpResponse.statusCode) else {
-            throw APIError.serverError(httpResponse.statusCode)
+            // Prova a decodificare messaggio errore
+            if let errorEnvelope = try? JSONDecoder().decode(APIResponse<EmptyResponse>.self, from: data),
+               let apiError = errorEnvelope.error {
+                throw APIError.serverError(code: apiError.code, message: apiError.message, status: httpResponse.statusCode)
+            }
+            throw APIError.unknown(httpResponse.statusCode)
         }
         
         // Decodifica risposta
@@ -181,19 +206,19 @@ extension APIService {
         do {
             let apiResponse = try decoder.decode(APIResponse<T>.self, from: data)
             
-            if apiResponse.success {
-                return apiResponse.data
+            if let responseData = apiResponse.data {
+                return responseData
             } else {
-                throw APIError.serverMessage(apiResponse.message ?? "Errore sconosciuto")
+                throw APIError.noData
             }
-        } catch {
+        } catch let decodingError {
             #if DEBUG
             if let jsonString = String(data: data, encoding: .utf8) {
-                print("❌ [DECODE ERROR]", error)
+                print("❌ [DECODE ERROR]", decodingError)
                 print("📡 Response:", jsonString)
             }
             #endif
-            throw error
+            throw APIError.decodingError(decodingError)
         }
     }
     

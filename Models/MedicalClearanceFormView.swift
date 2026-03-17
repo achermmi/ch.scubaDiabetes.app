@@ -8,7 +8,7 @@ import PhotosUI
 
 struct MedicalClearanceFormView: View {
     let existing: MedicalClearance?
-    let onSave: ([String: Any], Data?) -> Void
+    let onSave: ([String: Any], Data?, String?) -> Void
     
     @Environment(\.dismiss) var dismiss
     
@@ -91,7 +91,7 @@ struct MedicalClearanceFormView: View {
                 // SEZIONE: DOCUMENTO
                 // ═══════════════════════════════════════════════════════════
                 Section {
-                    if let existingUrl = existingDocumentUrl, documentData == nil {
+                    if existingDocumentUrl != nil, documentData == nil {
                         // Documento esistente
                         HStack {
                             Image(systemName: "doc.fill")
@@ -215,8 +215,8 @@ struct MedicalClearanceFormView: View {
             body["id"] = id
         }
         
-        // Chiama callback con body + eventuale documento
-        onSave(body, documentData)
+        // Chiama callback con body, documento e nome file
+        onSave(body, documentData, documentName)
         dismiss()
     }
     
@@ -261,10 +261,10 @@ struct MedicalClearanceFormView: View {
 // ═══════════════════════════════════════════════════════════════════════════
 
 #Preview("Nuovo") {
-    MedicalClearanceFormView(existing: nil) { body, doc in
+    MedicalClearanceFormView(existing: nil) { body, doc, fileName in
         print("📝 Salvataggio:", body)
-        if let doc = doc {
-            print("📎 Documento:", doc.count, "bytes")
+        if let doc = doc, let name = fileName {
+            print("📎 Documento:", name, "-", doc.count, "bytes")
         }
     }
 }
@@ -286,7 +286,7 @@ struct MedicalClearanceFormView: View {
         approvedNotes: nil
     )
     
-    MedicalClearanceFormView(existing: sample) { body, doc in
+    MedicalClearanceFormView(existing: sample) { body, doc, fileName in
         print("📝 Aggiornamento:", body)
     }
 }

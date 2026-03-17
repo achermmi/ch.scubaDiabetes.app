@@ -29,7 +29,7 @@ struct MedicalClearanceCardView: View {
                 
                 // Tipo visita · Medico
                 HStack(spacing: 4) {
-                    if let type = clearance.type {
+                    if clearance.type != nil {
                         Text(clearance.typeDisplayName)
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -237,7 +237,7 @@ struct MedicalClearanceCardView: View {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
     
-    return VStack(spacing: 16) {
+    VStack(spacing: 16) {
         MedicalClearanceCardView(
             clearance: MedicalClearance(
                 id: 3,
