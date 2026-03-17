@@ -3,6 +3,7 @@ import SwiftUI
 struct DiveDetailView: View {
     let diveID: Int
     @StateObject private var vm = DiveDetailViewModel()
+    @StateObject private var profileVM = ProfileViewModel()  // 🆕 Per recuperare preferenze
     @State private var showEditDiabetes = false
 
     var body: some View {
@@ -42,13 +43,21 @@ struct DiveDetailView: View {
             print("📍 DiveDetailView loading diveID=\(diveID)")
             #endif
             await vm.load(diveID: diveID)
+            await profileVM.load()  // 🆕 Carica profilo per preferenze
             #if DEBUG
             print("📍 DiveDetailView loaded: dive=\(vm.dive?.id ?? -1) error=\(vm.errorMessage ?? "none")")
             #endif
         }
         .sheet(isPresented: $showEditDiabetes) {
             if let dive = vm.dive {
-                DiabetesFormView(diveID: dive.id, existing: vm.diabetesData) { saved in
+                // 🆕 Passa unità glicemia dal profilo
+                let glucoseUnit = profileVM.profile?.health?.glucoseUnit.flatMap { GlucoseUnit(rawValue: $0) } ?? .mgDl
+                
+                DiabetesFormView(
+                    diveID: dive.id, 
+                    existing: vm.diabetesData,
+                    glucoseUnit: glucoseUnit
+                ) { saved in
                     vm.diabetesData = saved
                 }
             }

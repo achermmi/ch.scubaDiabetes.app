@@ -92,7 +92,32 @@
 
 ---
 
-## 5. EmergencyContact - Gestione ID mancante
+## 5. MedicalClearance - Campi mancanti aggiunti
+
+### Fix applicato per allineamento con il form web:
+- ✅ Aggiunto campo **`date`** - Data di rilascio dell'idoneità (non solo `year`)
+- ✅ Aggiunto campo **`type`** - Tipo di visita medica
+  - Valori possibili: `"iperbarica"`, `"sportiva"`, `"non_agonistica"`, `"altro"`
+  - Mappato dal campo `type` nel JSON dell'API
+- ✅ Campo **`doctor`** già presente - Nome del medico certificatore
+- ✅ Campo **`outcome`** già presente - Esito della visita
+  - Valori: `"fit"` (idoneo), `"fit_limited"` (idoneo con limitazioni), `"unfit"` (non idoneo)
+- ✅ Documento PDF/immagine già gestito tramite `documentUrl` e `documentName`
+
+### Computed properties aggiunte per il display:
+- `typeDisplayName` - Nome leggibile del tipo di visita
+- `outcomeDisplayName` - Nome leggibile dell'esito
+- `outcomeIcon` - Icona SF Symbol appropriata per l'esito
+- `outcomeColor` - Colore SwiftUI per l'esito (verde/arancione/rosso)
+
+### Note sul formato date:
+- `date` contiene la data di rilascio in formato `"yyyy-MM-dd"` (es: `"2026-03-12"`)
+- `validUntil` contiene la data di scadenza (mappato da `"expiry"` nel JSON)
+- `year` viene estratto automaticamente da `date` se non presente nel JSON
+
+---
+
+## 6. EmergencyContact - Gestione ID mancante
 
 ### Fix applicato:
 - Custom decoder che genera un hash-based ID quando mancante nella risposta API
@@ -120,13 +145,35 @@ Tutti i numeric fields dal backend PHP arrivano come String o Number:
 
 ---
 
+## Nuovi file creati per UI completa
+
+### 1. **MedicalClearanceFormView.swift**
+Form completo per aggiungere/modificare idoneità medica con:
+- ✅ Tutti i campi richiesti (anno, date, tipo visita, medico, esito)
+- ✅ Upload documenti (PDF, JPG, PNG, ZIP fino a 5 MB)
+- ✅ Validazione dimensione file
+- ✅ Compatibilità con formato web (stepper anno + date picker)
+
+### 2. **MedicalClearanceCardView.swift**
+Card per visualizzare idoneità nella lista con:
+- ✅ Status badge colorato (VALIDA/IN SCADENZA/SCADUTA)
+- ✅ Calcolo giorni rimanenti automatico
+- ✅ Icone ed esito colorati
+- ✅ Link al documento allegato
+- ✅ Bordo e sfondo colorati in base allo status
+
+---
+
 ## Prossimi passi consigliati
 
-1. ✅ Testare il decoding con dati reali dal backend
-2. ⚠️ Verificare i valori di default per `glycemia_unit` ("mg/dl" vs "mg_dl")
-3. ⚠️ Confermare che `shared_for_research` nel JSON usa lo stesso nome
-4. 📝 Aggiornare le View che usano i campi rinominati
-5. 📝 Implementare gestione delle date (String → Date conversion se necessaria)
+1. ✅ **COMPLETATO** - Allineamento modello `MedicalClearance` con backend
+2. ✅ **COMPLETATO** - Aggiunta campi `date` e `type`
+3. ✅ **COMPLETATO** - UI form completa con upload documenti
+4. ⚠️ Verificare i valori di default per `glycemia_unit` ("mg/dl" vs "mg_dl")
+5. ⚠️ Confermare che `shared_for_research` nel JSON usa lo stesso nome
+6. 📝 Integrare `MedicalClearanceFormView` nella schermata Profilo
+7. 📝 Implementare upload multipart/form-data per i documenti
+8. 📝 Gestire visualizzazione PDF/immagini in-app
 
 ---
 

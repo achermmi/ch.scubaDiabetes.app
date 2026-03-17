@@ -42,16 +42,18 @@ private func decisionFromDB(_ s: String?) -> String {
 struct DiabetesFormView: View {
     let diveID:   Int
     let existing: DiabetesData?
+    let glucoseUnit: GlucoseUnit  // 🆕 Unità preferita dall'utente
     let onSaved:  (DiabetesData) -> Void
 
     @StateObject private var vm: DiabetesFormViewModel
     @Environment(\.dismiss) var dismiss
 
-    init(diveID: Int, existing: DiabetesData?, onSaved: @escaping (DiabetesData) -> Void) {
+    init(diveID: Int, existing: DiabetesData?, glucoseUnit: GlucoseUnit = .mgDl, onSaved: @escaping (DiabetesData) -> Void) {
         self.diveID   = diveID
         self.existing = existing
+        self.glucoseUnit = glucoseUnit
         self.onSaved  = onSaved
-        _vm = StateObject(wrappedValue: DiabetesFormViewModel(diveID: diveID, existing: existing))
+        _vm = StateObject(wrappedValue: DiabetesFormViewModel(diveID: diveID, existing: existing, glucoseUnit: glucoseUnit))
     }
 
     var body: some View {
@@ -66,7 +68,8 @@ struct DiabetesFormView: View {
                         trend:   $vm.trendPre60,
                         choR:    $vm.choRapitiPre60,
                         choL:    $vm.choLentiPre60,
-                        insulin: $vm.insulinPre60
+                        insulin: $vm.insulinPre60,
+                        unit:    glucoseUnit  // 🆕
                     )
                 }
 
@@ -78,7 +81,8 @@ struct DiabetesFormView: View {
                         trend:   $vm.trendPre30,
                         choR:    $vm.choRapitiPre30,
                         choL:    $vm.choLentiPre30,
-                        insulin: $vm.insulinPre30
+                        insulin: $vm.insulinPre30,
+                        unit:    glucoseUnit  // 🆕
                     )
                 }
 
@@ -90,7 +94,8 @@ struct DiabetesFormView: View {
                         trend:   $vm.trendPre10,
                         choR:    $vm.choRapitiPre10,
                         choL:    $vm.choLentiPre10,
-                        insulin: $vm.insulinPre10
+                        insulin: $vm.insulinPre10,
+                        unit:    glucoseUnit  // 🆕
                     )
                 }
 
@@ -101,7 +106,7 @@ struct DiabetesFormView: View {
                         TextField("—", text: $vm.glicPost)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
-                        Text("mg/dL").font(.caption).foregroundStyle(.secondary)
+                        Text(glucoseUnit.displaySymbol).font(.caption).foregroundStyle(.secondary)  // 🆕
                     }
                     HStack {
                         Text("Trend").frame(width: 80, alignment: .leading)
@@ -183,7 +188,7 @@ struct DiabetesFormView: View {
     private var checkpointHeader: some View {
         HStack {
             Text("Glicemia").font(.caption).foregroundStyle(.secondary).frame(width: 80, alignment: .leading)
-            Text("mg/dL").font(.caption).foregroundStyle(.secondary).frame(width: 50)
+            Text(glucoseUnit.displaySymbol).font(.caption).foregroundStyle(.secondary).frame(width: 50)  // 🆕
             Spacer()
             Text("Trend").font(.caption).foregroundStyle(.secondary)
             Spacer()
@@ -211,6 +216,7 @@ struct CheckpointFormSection: View {
     @Binding var choR:    String
     @Binding var choL:    String
     @Binding var insulin: String
+    let unit: GlucoseUnit  // 🆕
 
     var body: some View {
         VStack(spacing: 8) {
@@ -219,7 +225,7 @@ struct CheckpointFormSection: View {
                 TextField("—", text: $glic)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
-                Text("mg/dL").font(.caption).foregroundStyle(.secondary)
+                Text(unit.displaySymbol).font(.caption).foregroundStyle(.secondary)  // 🆕
             }
             HStack {
                 Text("Trend").frame(width: 80, alignment: .leading)
@@ -262,6 +268,7 @@ struct CheckpointFormSection: View {
 @MainActor
 final class DiabetesFormViewModel: ObservableObject {
     let diveID: Int
+    let glucoseUnit: GlucoseUnit  // 🆕
 
     // Checkpoint stringhe per TextField + Picker
     @Published var glicPre60      = ""
@@ -300,18 +307,20 @@ final class DiabetesFormViewModel: ObservableObject {
 
     private let service = DiabetesService()
 
-    init(diveID: Int, existing: DiabetesData?) {
+    init(diveID: Int, existing: DiabetesData?, glucoseUnit: GlucoseUnit = .mgDl) {
         self.diveID = diveID
+        self.glucoseUnit = glucoseUnit
         if let d = existing { populate(from: d) }
     }
 
     // Popola i campi dal modello scaricato dall'API
+    // 🆕 I valori dal DB sono sempre in mg/dL, quindi convertiamo se l'utente usa mmol/L
     private func populate(from d: DiabetesData) {
-        // Glicemie: Double? → String
-        glicPre60 = d.glicPre60.map { "\(Int($0))" } ?? ""
-        glicPre30 = d.glicPre30.map { "\(Int($0))" } ?? ""
-        glicPre10 = d.glicPre10.map { "\(Int($0))" } ?? ""
-        glicPost  = d.glicPost.map  { "\(Int($0))" } ?? ""
+        // Glicemie: Double? → String (con conversione se necessario)
+        glicPre60 = d.glicPre60.map { formatGlucoseForDisplay($0) } ?? ""
+        glicPre30 = d.glicPre30.map { formatGlucoseForDisplay($0) } ?? ""
+        glicPre10 = d.glicPre10.map { formatGlucoseForDisplay($0) } ?? ""
+        glicPost  = d.glicPost.map  { formatGlucoseForDisplay($0) } ?? ""
 
         // Trend: DB "discesa" → UI "↓"
         trendPre60 = trendFromDB(d.trendPre60)
@@ -341,6 +350,27 @@ final class DiabetesFormViewModel: ObservableObject {
 
         notes = d.diabetesNotes ?? ""
     }
+    
+    // 🆕 Formatta glicemia dal DB (mg/dL) all'unità preferita
+    private func formatGlucoseForDisplay(_ mgDl: Double) -> String {
+        switch glucoseUnit {
+        case .mgDl:
+            return "\(Int(mgDl))"
+        case .mmolL:
+            let mmol = mgDl.mgDlToMmolL
+            return String(format: "%.1f", mmol)
+        }
+    }
+    
+    // 🆕 Converte glicemia dall'unità dell'utente a mg/dL per il salvataggio
+    private func convertToMgDl(_ value: Double) -> Double {
+        switch glucoseUnit {
+        case .mgDl:
+            return value
+        case .mmolL:
+            return value.mmolLToMgDl
+        }
+    }
 
     func save() async -> DiabetesData? {
         isLoading = true; errorMessage = nil
@@ -353,29 +383,30 @@ final class DiabetesFormViewModel: ObservableObject {
             "dive_decision": diveDecision
         ]
 
+        // 🆕 Converti i valori in mg/dL prima di salvare
         // -60
-        if let v = dbl(glicPre60)      { body["glic_60_value"]      = v }
+        if let v = dbl(glicPre60)      { body["glic_60_value"]      = convertToMgDl(v) }
         body["glic_60_trend"]           = trendToDB(trendPre60)
         if let v = dbl(choRapitiPre60) { body["glic_60_cho_rapidi"] = v }
         if let v = dbl(choLentiPre60)  { body["glic_60_cho_lenti"]  = v }
         if let v = dbl(insulinPre60)   { body["glic_60_insulin"]    = v }
 
         // -30
-        if let v = dbl(glicPre30)      { body["glic_30_value"]      = v }
+        if let v = dbl(glicPre30)      { body["glic_30_value"]      = convertToMgDl(v) }
         body["glic_30_trend"]           = trendToDB(trendPre30)
         if let v = dbl(choRapitiPre30) { body["glic_30_cho_rapidi"] = v }
         if let v = dbl(choLentiPre30)  { body["glic_30_cho_lenti"]  = v }
         if let v = dbl(insulinPre30)   { body["glic_30_insulin"]    = v }
 
         // -10
-        if let v = dbl(glicPre10)      { body["glic_10_value"]      = v }
+        if let v = dbl(glicPre10)      { body["glic_10_value"]      = convertToMgDl(v) }
         body["glic_10_trend"]           = trendToDB(trendPre10)
         if let v = dbl(choRapitiPre10) { body["glic_10_cho_rapidi"] = v }
         if let v = dbl(choLentiPre10)  { body["glic_10_cho_lenti"]  = v }
         if let v = dbl(insulinPre10)   { body["glic_10_insulin"]    = v }
 
         // Post
-        if let v = dbl(glicPost)       { body["glic_post_value"]    = v }
+        if let v = dbl(glicPost)       { body["glic_post_value"]    = convertToMgDl(v) }
         body["glic_post_trend"]         = trendToDB(trendPost)
 
         // Flags

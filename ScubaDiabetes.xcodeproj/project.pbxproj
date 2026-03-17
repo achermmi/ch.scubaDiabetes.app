@@ -10,9 +10,20 @@
 		14DA8BFC2F66BE9500B1E838 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 14DA8BFB2F66BE9500B1E838 /* .gitignore */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		14DA8C382F67299E00B1E838 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 147AE1AF2F5F10A60093537B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 147AE1B62F5F10A60093537B;
+			remoteInfo = ScubaDiabetes;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		147AE1B72F5F10A60093537B /* ScubaDiabetes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScubaDiabetes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		14DA8BFB2F66BE9500B1E838 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		14DA8C342F67299E00B1E838 /* ScubaDiabetesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScubaDiabetesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -46,10 +57,22 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		14DA8C352F67299E00B1E838 /* ScubaDiabetesTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ScubaDiabetesTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		147AE1B42F5F10A60093537B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		14DA8C312F67299E00B1E838 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -65,6 +88,7 @@
 				147AE1B92F5F10A60093537B /* App */,
 				147AE1C62F5F116B0093537B /* Core */,
 				147AE1C92F5F11B80093537B /* Models */,
+				14DA8C352F67299E00B1E838 /* ScubaDiabetesTests */,
 				147AE1B82F5F10A60093537B /* Products */,
 				147AE1CA2F5F11C80093537B /* Resources */,
 				147AE1D02F5F12460093537B /* ViewModels */,
@@ -77,6 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				147AE1B72F5F10A60093537B /* ScubaDiabetes.app */,
+				14DA8C342F67299E00B1E838 /* ScubaDiabetesTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -111,6 +136,29 @@
 			productReference = 147AE1B72F5F10A60093537B /* ScubaDiabetes.app */;
 			productType = "com.apple.product-type.application";
 		};
+		14DA8C332F67299E00B1E838 /* ScubaDiabetesTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 14DA8C3A2F67299E00B1E838 /* Build configuration list for PBXNativeTarget "ScubaDiabetesTests" */;
+			buildPhases = (
+				14DA8C302F67299E00B1E838 /* Sources */,
+				14DA8C312F67299E00B1E838 /* Frameworks */,
+				14DA8C322F67299E00B1E838 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				14DA8C392F67299E00B1E838 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				14DA8C352F67299E00B1E838 /* ScubaDiabetesTests */,
+			);
+			name = ScubaDiabetesTests;
+			packageProductDependencies = (
+			);
+			productName = ScubaDiabetesTests;
+			productReference = 14DA8C342F67299E00B1E838 /* ScubaDiabetesTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -123,6 +171,10 @@
 				TargetAttributes = {
 					147AE1B62F5F10A60093537B = {
 						CreatedOnToolsVersion = 26.3;
+					};
+					14DA8C332F67299E00B1E838 = {
+						CreatedOnToolsVersion = 26.3;
+						TestTargetID = 147AE1B62F5F10A60093537B;
 					};
 				};
 			};
@@ -144,6 +196,7 @@
 			projectRoot = "";
 			targets = (
 				147AE1B62F5F10A60093537B /* ScubaDiabetes */,
+				14DA8C332F67299E00B1E838 /* ScubaDiabetesTests */,
 			);
 		};
 /* End PBXProject section */
@@ -157,6 +210,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		14DA8C322F67299E00B1E838 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -167,7 +227,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		14DA8C302F67299E00B1E838 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		14DA8C392F67299E00B1E838 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 147AE1B62F5F10A60093537B /* ScubaDiabetes */;
+			targetProxy = 14DA8C382F67299E00B1E838 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		147AE1C02F5F10A80093537B /* Debug */ = {
@@ -359,6 +434,48 @@
 			};
 			name = Release;
 		};
+		14DA8C3B2F67299E00B1E838 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8PL9RE94L2;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ch.scubadiabetes.ScubaDiabetesTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ScubaDiabetes.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ScubaDiabetes";
+			};
+			name = Debug;
+		};
+		14DA8C3C2F67299E00B1E838 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8PL9RE94L2;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ch.scubadiabetes.ScubaDiabetesTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ScubaDiabetes.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ScubaDiabetes";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -376,6 +493,15 @@
 			buildConfigurations = (
 				147AE1C32F5F10A80093537B /* Debug */,
 				147AE1C42F5F10A80093537B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		14DA8C3A2F67299E00B1E838 /* Build configuration list for PBXNativeTarget "ScubaDiabetesTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				14DA8C3B2F67299E00B1E838 /* Debug */,
+				14DA8C3C2F67299E00B1E838 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

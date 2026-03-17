@@ -2,6 +2,70 @@
 
 Per supportare le nuove funzionalità implementate nell'app iOS, il plugin WordPress deve essere aggiornato.
 
+## ⚠️ URGENTE: Contatti di Emergenza - Campo Email Mancante
+
+### Problema
+Il backend WordPress **NON salva né restituisce** il campo `email` per i contatti di emergenza.
+
+### File da modificare: `class-sd-diver-profile.php`
+
+#### Modifica nella funzione `save_emergency_contact()`
+
+**PRIMA:**
+```php
+$new = array(
+    'name'         => sanitize_text_field( $_POST['contact_name'] ?? '' ),
+    'phone'        => sanitize_text_field( $_POST['contact_phone'] ?? '' ),
+    'relationship' => sanitize_text_field( $_POST['contact_relationship'] ?? '' ),
+);
+```
+
+**DOPO:**
+```php
+$new = array(
+    'name'         => sanitize_text_field( $_POST['contact_name'] ?? '' ),
+    'phone'        => sanitize_text_field( $_POST['contact_phone'] ?? '' ),
+    'relationship' => sanitize_text_field( $_POST['contact_relationship'] ?? '' ),
+    'email'        => sanitize_email( $_POST['contact_email'] ?? '' ),
+    'notes'        => sanitize_textarea_field( $_POST['contact_notes'] ?? '' ),
+);
+```
+
+#### Modifica nel template di visualizzazione (se presente)
+
+Assicurati che quando il profilo viene visualizzato, anche `email` e `notes` vengano mostrati.
+
+### Endpoint API REST
+
+L'endpoint `/profile/emergency-contacts` deve:
+
+**GET - Risposta:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Mirko Achermann",
+    "phone": "+41796636610",
+    "relationship": "Amico/a",
+    "email": "mirko.achermann@gmail.com",
+    "notes": ""
+  }
+]
+```
+
+**POST/PUT - Request Body:**
+```json
+{
+  "name": "Nome Cognome",
+  "phone": "+41 79 123 45 67",
+  "relationship": "Coniuge/Partner",
+  "email": "email@esempio.ch",
+  "notes": "Note opzionali"
+}
+```
+
+---
+
 ## 1. Database - Tabella `health_profiles`
 
 Aggiungere due nuove colonne:

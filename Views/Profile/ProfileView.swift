@@ -244,39 +244,64 @@ struct HealthSectionContent: View {
     let health: HealthProfile?
 
     var body: some View {
-        if let h = health {
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                if let d = h.diabetesType {
-                    ProfileInfoCell(label: "profile.health.diabetes_type", value: d)
+        if let h = health, hasVisibleData(h) {
+            VStack(spacing: 12) {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                    // Mostra sempre isDiabetic se presente
+                    if let isDiabetic = h.isDiabetic {
+                        ProfileInfoCell(
+                            label: "profile.health.is_diabetic",
+                            value: isDiabetic ? "Sì" : "No"
+                        )
+                    }
+                    
+                    if let d = h.diabetesType {
+                        ProfileInfoCell(label: "profile.health.diabetes_type", value: d)
+                    }
+                    if let t = h.therapyType {
+                        ProfileInfoCell(label: "profile.health.therapy", value: t)
+                    }
+                    if let hba = h.hba1c {
+                        ProfileInfoCell(label: "HbA1c", value: "\(hba)%")
+                    }
+                    if let bt = h.bloodType {
+                        ProfileInfoCell(label: "profile.health.blood_type", value: bt)
+                    }
+                    if let cgm = h.cgmDevice, !cgm.isEmpty {
+                        ProfileInfoCell(label: "profile.health.cgm", value: cgm)
+                    }
+                    if let pump = h.insulinPumpModel, !pump.isEmpty {
+                        ProfileInfoCell(label: "profile.health.pump", value: pump)
+                    }
                 }
-                if let t = h.therapyType {
-                    ProfileInfoCell(label: "profile.health.therapy", value: t)
+                
+                if let allergies = h.allergies, !allergies.isEmpty {
+                    ProfileTextCell(label: "profile.health.allergies", value: allergies)
                 }
-                if let hba = h.hba1c {
-                    ProfileInfoCell(label: "HbA1c", value: "\(hba)%")
+                if let meds = h.medications, !meds.isEmpty {
+                    ProfileTextCell(label: "profile.health.medications", value: meds)
                 }
-                if let bt = h.bloodType {
-                    ProfileInfoCell(label: "profile.health.blood_type", value: bt)
+                if let notes = h.notes, !notes.isEmpty {
+                    ProfileTextCell(label: "profile.health.notes", value: notes)
                 }
-                if let cgm = h.cgmDevice, !cgm.isEmpty {
-                    ProfileInfoCell(label: "profile.health.cgm", value: cgm)
-                }
-                if let pump = h.insulinPumpModel, !pump.isEmpty {
-                    ProfileInfoCell(label: "profile.health.pump", value: pump)
-                }
-            }
-            if let allergies = h.allergies, !allergies.isEmpty {
-                ProfileTextCell(label: "profile.health.allergies", value: allergies)
-            }
-            if let meds = h.medications, !meds.isEmpty {
-                ProfileTextCell(label: "profile.health.medications", value: meds)
-            }
-            if let notes = h.notes, !notes.isEmpty {
-                ProfileTextCell(label: "profile.health.notes", value: notes)
             }
         } else {
             EmptySectionView(message: "profile.health.empty", icon: "heart.slash")
         }
+    }
+    
+    // Helper per verificare se ci sono dati da mostrare
+    private func hasVisibleData(_ h: HealthProfile) -> Bool {
+        return h.isDiabetic != nil ||
+               h.diabetesType != nil ||
+               h.therapyType != nil ||
+               h.hba1c != nil ||
+               h.bloodType != nil ||
+               (h.cgmDevice != nil && !h.cgmDevice!.isEmpty) ||
+               (h.insulinPumpModel != nil && !h.insulinPumpModel!.isEmpty) ||
+               (h.allergies != nil && !h.allergies!.isEmpty) ||
+               (h.medications != nil && !h.medications!.isEmpty) ||
+               (h.notes != nil && !h.notes!.isEmpty)
     }
 }
 
@@ -517,6 +542,19 @@ struct EmergencyContactRow: View {
                     Label(contact.phone, systemImage: "phone.fill")
                         .font(.caption)
                         .foregroundStyle(Color("AccentColor"))
+                }
+                
+                // 🆕 Mostra email se presente (con il valore effettivo)
+                if let email = contact.email, !email.isEmpty {
+                    Button {
+                        if let url = URL(string: "mailto:\(email)") {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        Label(email, systemImage: "envelope.fill")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
                 }
             }
 

@@ -2,6 +2,8 @@ import SwiftUI
 
 struct NewDiveView: View {
     let isDiabetic: Bool
+    let userGlucoseUnit: GlucoseUnit  // 🆕 Unità preferita dall'utente
+    let defaultShareForResearch: Bool // 🆕 Default dal profilo
     let onSaved: () -> Void
 
     @StateObject private var vm = NewDiveViewModel()
@@ -139,6 +141,21 @@ struct NewDiveView: View {
                         .focused($focusedField, equals: .notes)
                         .frame(minHeight: 80)
                 }
+                
+                // 🆕 Privacy
+                Section {
+                    Toggle(isOn: $vm.shareForResearch) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("dive.form.share_for_research")
+                                .font(.body)
+                            Text("dive.form.share_for_research_desc")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } header: {
+                    Label("dive.form.privacy", systemImage: "lock.shield")
+                }
 
                 // ── Errore ────────────────────────────────────────────────
                 if let err = vm.errorMessage {
@@ -157,7 +174,7 @@ struct NewDiveView: View {
                     Button("save") {
                         focusedField = nil
                         Task {
-                            await vm.save(isDiabetic: isDiabetic)
+                            await vm.save(isDiabetic: isDiabetic, glucoseUnit: userGlucoseUnit)
                             if vm.savedDive != nil {
                                 onSaved()
                                 dismiss()
@@ -174,6 +191,10 @@ struct NewDiveView: View {
                     Button("done") { focusedField = nil }
                 }
             }
+            .onAppear {
+                // 🆕 Imposta il default dal profilo
+                vm.shareForResearch = defaultShareForResearch
+            }
         }
     }
 
@@ -182,10 +203,10 @@ struct NewDiveView: View {
     private var diabetesSection: some View {
         Group {
             Section("dive.diabetes.checkpoints") {
-                CheckpointInputRow(label: "-60 min", glic: $vm.glicPre60)
-                CheckpointInputRow(label: "-30 min", glic: $vm.glicPre30)
-                CheckpointInputRow(label: "-10 min", glic: $vm.glicPre10)
-                CheckpointInputRow(label: "Post",    glic: $vm.glicPost)
+                CheckpointInputRow(label: "-60 min", glic: $vm.glicPre60, unit: userGlucoseUnit)
+                CheckpointInputRow(label: "-30 min", glic: $vm.glicPre30, unit: userGlucoseUnit)
+                CheckpointInputRow(label: "-10 min", glic: $vm.glicPre10, unit: userGlucoseUnit)
+                CheckpointInputRow(label: "Post",    glic: $vm.glicPost, unit: userGlucoseUnit)
 
                 HStack {
                     Text("dive.diabetes.trend")
@@ -259,6 +280,7 @@ struct FormRow<Content: View>: View {
 struct CheckpointInputRow: View {
     let label: String
     @Binding var glic: String
+    let unit: GlucoseUnit  // 🆕
 
     var body: some View {
         HStack {
@@ -270,7 +292,7 @@ struct CheckpointInputRow: View {
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .frame(width: 80)
-            Text("mg/dL").font(.caption).foregroundStyle(.secondary)
+            Text(unit.displaySymbol).font(.caption).foregroundStyle(.secondary)
         }
     }
 }

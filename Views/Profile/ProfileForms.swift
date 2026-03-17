@@ -20,6 +20,8 @@ struct HealthProfileFormView: View {
     @State private var allergies      = ""
     @State private var medications    = ""
     @State private var notes          = ""
+    @State private var glucoseUnit    = GlucoseUnit.mgDl  // 🆕 Unità glicemia
+    @State private var shareForResearch = true            // 🆕 Privacy default
 
     var body: some View {
         NavigationStack {
@@ -49,6 +51,15 @@ struct HealthProfileFormView: View {
                                 .frame(width: 80)
                             Text("%").font(.caption).foregroundStyle(.secondary)
                         }
+                        
+                        // 🆕 Selettore unità glicemia
+                        Picker("profile.health.glucose_unit", selection: $glucoseUnit) {
+                            ForEach(GlucoseUnit.allCases, id: \.self) { unit in
+                                Text(unit.displayName).tag(unit)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        
                         HStack {
                             Text("profile.health.cgm")
                             Spacer()
@@ -72,16 +83,39 @@ struct HealthProfileFormView: View {
                         }
                     }
                 }
+                
+                // 🆕 Sezione Privacy
+                Section {
+                    Toggle(isOn: $shareForResearch) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Condividi le mie immersioni per la ricerca scientifica (impostazione predefinita)")
+                                .font(.body)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Text("Questa preferenza verrà applicata alle nuove immersioni. Puoi modificarla per ogni singola immersione.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                } header: {
+                    Label("CONDIVISIONE DATI PER LA RICERCA", systemImage: "lock.shield")
+                } footer: {
+                    Text("I tuoi dati sono anonimi e contribuiscono alla ricerca sul diabete subacqueo.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, 4)
+                }
 
-                Section("profile.health.allergies") {
+                Section("Allergie") {
                     TextEditor(text: $allergies).frame(minHeight: 60)
                 }
 
-                Section("profile.health.medications") {
+                Section("Farmaci") {
                     TextEditor(text: $medications).frame(minHeight: 60)
                 }
 
-                Section("profile.health.notes") {
+                Section("Note") {
                     TextEditor(text: $notes).frame(minHeight: 60)
                 }
             }
@@ -96,11 +130,13 @@ struct HealthProfileFormView: View {
                             "blood_type":   bloodType,
                             "allergies":    allergies,
                             "medications":  medications,
-                            "notes":        notes
+                            "notes":        notes,
+                            "share_for_research": shareForResearch  // 🆕
                         ]
                         if isDiabetic {
                             body["diabetes_type"]  = diabetesType
                             body["therapy_type"]   = therapyType
+                            body["glucose_unit"]   = glucoseUnit.rawValue  // 🆕
                             if let v = Double(hba1c) { body["hba1c"] = v }
                             if !cgmDevice.isEmpty   { body["cgm_device"] = cgmDevice }
                             if !insulinPump.isEmpty  { body["insulin_pump_model"] = insulinPump }
@@ -117,8 +153,14 @@ struct HealthProfileFormView: View {
     private func populate() {
         guard let h = existing else { return }
         isDiabetic   = h.isDiabetic ?? false
-        diabetesType = h.diabetesType ?? "T1"
-        therapyType  = h.therapyType ?? "MDI"
+        
+        // Gestisci valori "none" dal backend - usa default validi per i Picker
+        let validDiabetesTypes = ["T1", "T2", "LADA", "MODY", "other"]
+        diabetesType = validDiabetesTypes.contains(h.diabetesType ?? "") ? (h.diabetesType ?? "T1") : "T1"
+        
+        let validTherapyTypes = ["MDI", "pump", "oral", "diet"]
+        therapyType = validTherapyTypes.contains(h.therapyType ?? "") ? (h.therapyType ?? "MDI") : "MDI"
+        
         hba1c        = h.hba1c.map { "\($0)" } ?? ""
         cgmDevice    = h.cgmDevice ?? ""
         insulinPump  = h.insulinPumpModel ?? ""
@@ -126,6 +168,12 @@ struct HealthProfileFormView: View {
         allergies    = h.allergies ?? ""
         medications  = h.medications ?? ""
         notes        = h.notes ?? ""
+        
+        // 🆕 Popola nuovi campi
+        if let unit = h.glucoseUnit, let parsed = GlucoseUnit(rawValue: unit) {
+            glucoseUnit = parsed
+        }
+        shareForResearch = h.shareForResearch ?? true
     }
 }
 
@@ -307,6 +355,31 @@ struct EmergencyContactFormView: View {
     @State private var relationship = ""
     @State private var email        = ""
     @State private var notes        = ""
+    
+    // Opzioni relazione: (key = valore inviato/ricevuto dal backend, label = testo visualizzato)
+    // Le chiavi devono corrispondere esattamente ai valori memorizzati nel backend
+    private let relationshipOptions: [(key: String, label: String)] = [
+        ("",          "Seleziona..."),
+        ("coniuge",   "Coniuge/Partner"),
+        ("genitore",  "Genitore"),
+        ("figlio",    "Figlio/a"),
+        ("fratello",  "Fratello/Sorella"),
+        ("amico",     "Amico/a"),
+        ("medico",    "Medico curante"),
+        ("altro",     "Altro")
+    ]
+
+    // Mappa di normalizzazione: converte vecchie stringhe complete → chiave corta
+    // (necessario per dati salvati da versioni precedenti dell'app o dalla web interface)
+    private let relationshipNormalizationMap: [String: String] = [
+        "Coniuge/Partner": "coniuge",
+        "Genitore":        "genitore",
+        "Figlio/a":        "figlio",
+        "Fratello/Sorella":"fratello",
+        "Amico/a":         "amico",
+        "Medico curante":  "medico",
+        "Altro":           "altro"
+    ]
 
     var body: some View {
         NavigationStack {
@@ -325,12 +398,14 @@ struct EmergencyContactFormView: View {
                             .keyboardType(.phonePad)
                             .multilineTextAlignment(.trailing)
                     }
-                    HStack {
-                        Text("profile.emergency.relationship")
-                        Spacer()
-                        TextField("profile.emergency.relationship_ph", text: $relationship)
-                            .multilineTextAlignment(.trailing)
+                    
+                    // Picker relazione: tag = chiave backend, label = testo visualizzato
+                    Picker("profile.emergency.relationship", selection: $relationship) {
+                        ForEach(relationshipOptions, id: \.key) { option in
+                            Text(option.label).tag(option.key)
+                        }
                     }
+                    
                     HStack {
                         Text("profile.emergency.email")
                         Spacer()
@@ -371,10 +446,21 @@ struct EmergencyContactFormView: View {
 
     private func populate() {
         guard let c = existing else { return }
-        name         = c.name
-        phone        = c.phone
-        relationship = c.relationship ?? ""
-        email        = c.email ?? ""
-        notes        = c.notes ?? ""
+        name  = c.name
+        phone = c.phone
+        email = c.email ?? ""
+        notes = c.notes ?? ""
+
+        // Normalizza il valore di relationship:
+        // - se è già una chiave corta valida (es. "coniuge") → usala direttamente
+        // - se è una vecchia stringa completa (es. "Coniuge/Partner") → converti alla chiave corta
+        // - se non corrisponde a nulla → imposta "" (Seleziona...)
+        let raw = c.relationship ?? ""
+        let validKeys = Set(relationshipOptions.map(\.key))
+        if validKeys.contains(raw) {
+            relationship = raw
+        } else {
+            relationship = relationshipNormalizationMap[raw] ?? ""
+        }
     }
 }

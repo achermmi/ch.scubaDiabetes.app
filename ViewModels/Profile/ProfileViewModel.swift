@@ -8,7 +8,7 @@ final class ProfileViewModel: ObservableObject {
     @Published var profile:    DiverProfile?
     @Published var isLoading   = false
     @Published var errorMessage: String?
-    @Published var expandedSection: ProfileSection? = .health
+    @Published var expandedSection: ProfileSection? = nil  // 🆕 Tutte le sezioni contratte all'inizio
 
     enum ProfileSection: Hashable {
         case health, certifications, clearances, emergency
@@ -24,8 +24,38 @@ final class ProfileViewModel: ObservableObject {
         defer { isLoading = false }
         do {
             profile = try await profileService.fullProfile()
+            
+            #if DEBUG
+            print("✅ [PROFILE] Caricato con successo")
+            if let health = profile?.health {
+                print("  📊 Health:")
+                print("    - isDiabetic: \(health.isDiabetic ?? false)")
+                print("    - diabetesType: \(health.diabetesType ?? "nil")")
+                print("    - therapyType: \(health.therapyType ?? "nil")")
+                print("    - bloodType: \(health.bloodType ?? "nil")")
+                print("    - hba1c: \(health.hba1c?.description ?? "nil")")
+            } else {
+                print("  ⚠️ Health profile is nil")
+            }
+            
+            print("  🏆 Certifications: \(profile?.certifications.count ?? 0)")
+            profile?.certifications.forEach { cert in
+                print("    - \(cert.agency) | \(cert.level) | \(cert.date)")
+            }
+            
+            print("  🩺 Clearances: \(profile?.clearances.count ?? 0)")
+            print("  📞 Emergency Contacts: \(profile?.emergencyContacts.count ?? 0)")
+            profile?.emergencyContacts.forEach { contact in
+                print("    - \(contact.name) | \(contact.phone)")
+                print("      relationship: \(contact.relationship ?? "nil")")
+                print("      email: \(contact.email ?? "nil")")
+            }
+            #endif
         } catch {
             errorMessage = error.localizedDescription
+            #if DEBUG
+            print("❌ [PROFILE] Errore caricamento: \(error)")
+            #endif
         }
     }
 

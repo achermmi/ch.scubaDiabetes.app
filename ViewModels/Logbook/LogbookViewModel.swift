@@ -176,6 +176,7 @@ final class NewDiveViewModel: ObservableObject {
     @Published var suit          = ""
     @Published var buddyName     = ""
     @Published var notes         = ""
+    @Published var shareForResearch = true  // 🆕 Privacy
 
     // Dati glicemici (mostrati solo se diabetico)
     @Published var showDiabetesSection = false
@@ -207,7 +208,7 @@ final class NewDiveViewModel: ObservableObject {
 
     var isValid: Bool { !site.trimmingCharacters(in: .whitespaces).isEmpty }
 
-    func save(isDiabetic: Bool) async {
+    func save(isDiabetic: Bool, glucoseUnit: GlucoseUnit) async {
         guard isValid else { return }
         isLoading = true
         errorMessage = nil
@@ -218,6 +219,7 @@ final class NewDiveViewModel: ObservableObject {
             "site":       site.trimmingCharacters(in: .whitespaces),
             "time_in":    timeFormatter.string(from: timeIn),
             "time_out":   timeFormatter.string(from: timeOut),
+            "share_for_research": shareForResearch  // 🆕
         ]
         if let d = Double(maxDepth)   { body["max_depth"]    = d }
         if let v = Int(tankVolume)    { body["tank_volume"]  = v }
@@ -239,10 +241,25 @@ final class NewDiveViewModel: ObservableObject {
             // Salva dati glicemici se diabetico
             if isDiabetic && showDiabetesSection {
                 var db: [String: Any] = ["dive_decision": diveDecision]
-                if let v = Double(glicPre60)  { db["glic_pre60"]  = v }
-                if let v = Double(glicPre30)  { db["glic_pre30"]  = v }
-                if let v = Double(glicPre10)  { db["glic_pre10"]  = v }
-                if let v = Double(glicPost)   { db["glic_post"]   = v }
+                
+                // 🆕 Converti le glicemie in mg/dL se necessario
+                if let v = Double(glicPre60) {
+                    let mgDl = glucoseUnit == .mmolL ? v.mmolLToMgDl : v
+                    db["glic_pre60"] = mgDl
+                }
+                if let v = Double(glicPre30) {
+                    let mgDl = glucoseUnit == .mmolL ? v.mmolLToMgDl : v
+                    db["glic_pre30"] = mgDl
+                }
+                if let v = Double(glicPre10) {
+                    let mgDl = glucoseUnit == .mmolL ? v.mmolLToMgDl : v
+                    db["glic_pre10"] = mgDl
+                }
+                if let v = Double(glicPost) {
+                    let mgDl = glucoseUnit == .mmolL ? v.mmolLToMgDl : v
+                    db["glic_post"] = mgDl
+                }
+                
                 if let v = Double(choRapidi)  { db["cho_rapidi_pre10"] = v }
                 if let v = Double(choLenti)   { db["cho_lenti_pre10"]  = v }
                 db["trend_pre10"]        = trendPre10

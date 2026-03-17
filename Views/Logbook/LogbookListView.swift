@@ -3,6 +3,7 @@ import SwiftUI
 struct LogbookListView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @StateObject private var vm = LogbookViewModel()
+    @StateObject private var profileVM = ProfileViewModel()  // 🆕 Per recuperare preferenze utente
     @State private var showNewDive   = false
     @State private var showExportShare = false
     @State private var exportData: Data?
@@ -23,10 +24,22 @@ struct LogbookListView: View {
             .navigationTitle("nav.logbook")
             .searchable(text: $vm.searchText, prompt: "logbook.search")
             .toolbar { toolbarItems }
-            .task { await vm.loadInitial() }
+            .task { 
+                await vm.loadInitial()
+                await profileVM.load()  // 🆕 Carica profilo per preferenze
+            }
             .refreshable { await vm.refresh() }
             .sheet(isPresented: $showNewDive) {
-                NewDiveView(isDiabetic: authVM.currentUser?.sdRole.isDiabetic == true) {
+                // 🆕 Passa unità glicemia e preferenza privacy dal profilo
+                let isDiabetic = authVM.currentUser?.sdRole.isDiabetic == true
+                let glucoseUnit = profileVM.profile?.health?.glucoseUnit.flatMap { GlucoseUnit(rawValue: $0) } ?? .mgDl
+                let defaultShare = profileVM.profile?.health?.shareForResearch ?? true
+                
+                NewDiveView(
+                    isDiabetic: isDiabetic,
+                    userGlucoseUnit: glucoseUnit,
+                    defaultShareForResearch: defaultShare
+                ) {
                     Task { await vm.loadInitial() }
                 }
             }
